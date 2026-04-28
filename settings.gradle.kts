@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "IslandMatchYardVibes"
 include(":app")
+include(":app")
+ 
