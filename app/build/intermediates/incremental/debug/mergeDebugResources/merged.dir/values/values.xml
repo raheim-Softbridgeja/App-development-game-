@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="board_slot">#245744</color>
+    <color name="board_surface">#2D6A4F</color>
+    <color name="text_primary">#1F2933</color>
+    <color name="text_secondary">#52606D</color>
+    <color name="tile_blue">#4D96FF</color>
+    <color name="tile_empty">#245744</color>
+    <color name="tile_green">#2A9D8F</color>
+    <color name="tile_purple">#8D5FD3</color>
+    <color name="tile_red">#E76F51</color>
+    <color name="tile_yellow">#E9C46A</color>
+    <string name="app_name">Island Match: Yard Vibes</string>
+    <string name="board_shuffled">Board shuffled. Fresh move available.</string>
+    <string name="level_loaded">Level loaded.</string>
+    <string name="level_restarted">Level restarted.</string>
+    <string name="level_value">Level %1$d/%2$d  •  %3$s</string>
+    <string name="moves_value">Moves: %1$d</string>
+    <string name="next_level">Next</string>
+    <string name="no_levels_found">No level JSON files were found under Assets/Resources/Levels.</string>
+    <string name="no_moves_left">No moves left. Restart, shuffle, or load the next board.</string>
+    <string name="restart">Restart</string>
+    <string name="score_value">Score: %1$d</string>
+    <string name="select_neighbor_prompt">Tile selected. Tap a neighboring tile to swap.</string>
+    <string name="selection_cleared">Selection cleared.</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="tap_prompt">Tap two neighboring tiles to make a match.</string>
+    <string name="target_cleared">Goal hit</string>
+    <string name="target_live">Goal live</string>
+    <string name="target_value">Target: %1$d  •  %2$s</string>
+</resources>

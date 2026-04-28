@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="board_surface">#2D6A4F</color>
+    <color name="board_slot">#245744</color>
+    <color name="tile_empty">#245744</color>
+    <color name="tile_red">#E76F51</color>
+    <color name="tile_blue">#4D96FF</color>
+    <color name="tile_green">#2A9D8F</color>
+    <color name="tile_yellow">#E9C46A</color>
+    <color name="tile_purple">#8D5FD3</color>
+    <color name="text_primary">#1F2933</color>
+    <color name="text_secondary">#52606D</color>
+</resources>
