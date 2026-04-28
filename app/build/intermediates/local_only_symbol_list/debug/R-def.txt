@@ -14,6 +14,8 @@ drawable bg_root
 drawable button_primary
 drawable button_secondary
 drawable ic_launcher
+drawable ic_launcher_background
+drawable ic_launcher_foreground
 drawable panel_board
 drawable panel_stats
 id boardView
@@ -28,6 +30,8 @@ id statusText
 id targetText
 id titleText
 layout activity_main
+mipmap ic_launcher
+mipmap ic_launcher_round
 string app_name
 string board_shuffled
 string level_loaded
@@ -46,3 +50,6 @@ string tap_prompt
 string target_cleared
 string target_live
 string target_value
+style Theme.Match3
+xml backup_rules
+xml data_extraction_rules

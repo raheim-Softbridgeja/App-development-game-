@@ -28,4 +28,5 @@
     <string name="target_cleared">Goal hit</string>
     <string name="target_live">Goal live</string>
     <string name="target_value">Target: %1$d  •  %2$s</string>
+    <style name="Theme.Match3" parent="android:Theme.Material.Light.NoActionBar"/>
 </resources>
