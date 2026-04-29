@@ -25,12 +25,31 @@ class GameEngine(
     private val level: LevelData,
     private val random: Random = Random.Default,
 ) {
+    companion object {
+        private const val STARTING_HAMMER_CHARGES = 3
+        private const val STARTING_SUNBURST_CHARGES = 1
+        private const val STARTING_EXTRA_MOVE_CHARGES = 2
+        private const val EXTRA_MOVES_BONUS = 3
+    }
+
     private val board = Array(level.height) { IntArray(level.width) }
 
     var score: Int = 0
         private set
 
     var movesRemaining: Int = level.moves
+        private set
+
+    var hammerCharges: Int = STARTING_HAMMER_CHARGES
+        private set
+
+    var sunburstCharges: Int = STARTING_SUNBURST_CHARGES
+        private set
+
+    var extraMoveCharges: Int = STARTING_EXTRA_MOVE_CHARGES
+        private set
+    
+    var isLevelFinished: Boolean = false
         private set
 
     val levelId: String
@@ -52,6 +71,14 @@ class GameEngine(
         sanitizeBoardForPlay()
         score = 0
         movesRemaining = level.moves
+        hammerCharges = STARTING_HAMMER_CHARGES
+        sunburstCharges = STARTING_SUNBURST_CHARGES
+        extraMoveCharges = STARTING_EXTRA_MOVE_CHARGES
+        isLevelFinished = false
+    }
+    
+    fun markLevelFinished() {
+        isLevelFinished = true
     }
 
     fun copyBoard(): Array<IntArray> = Array(level.height) { row -> board[row].clone() }
@@ -108,6 +135,91 @@ class GameEngine(
         }
 
         return SwapResult(true, message)
+    }
+
+    fun useHammer(pos: GridPos): SwapResult {
+        if (hammerCharges <= 0) {
+            return SwapResult(false, "No hammers left on this level.")
+        }
+
+        if (!isValid(pos) || tileAt(pos) == 0) {
+            return SwapResult(false, "Pick a live tile to smash.")
+        }
+
+        hammerCharges--
+        board[pos.row][pos.col] = 0
+        applyGravity()
+        refillBoard()
+        resolveUntilStable(countScore = true)
+
+        var shuffled = false
+        if (!hasValidMoves()) {
+            shuffleBoard()
+            shuffled = true
+        }
+
+        val message = when {
+            hasMetTarget() -> "Hammer used. Target cleared."
+            shuffled -> "Hammer used. The board was reshuffled for a fresh move."
+            else -> "Hammer used. Keep matching."
+        }
+
+        return SwapResult(true, message)
+    }
+
+    fun useSunburst(pos: GridPos): SwapResult {
+        if (sunburstCharges <= 0) {
+            return SwapResult(false, "No sunbursts left on this level.")
+        }
+
+        if (!isValid(pos) || tileAt(pos) == 0) {
+            return SwapResult(false, "Pick a live tile color to sweep away.")
+        }
+
+        val targetTile = tileAt(pos)
+        var removed = 0
+        for (row in 0 until level.height) {
+            for (col in 0 until level.width) {
+                if (board[row][col] == targetTile) {
+                    board[row][col] = 0
+                    removed++
+                }
+            }
+        }
+
+        if (removed == 0) {
+            return SwapResult(false, "That color could not be cleared.")
+        }
+
+        sunburstCharges--
+        score += removed * 10
+        applyGravity()
+        refillBoard()
+        resolveUntilStable(countScore = true)
+
+        var shuffled = false
+        if (!hasValidMoves()) {
+            shuffleBoard()
+            shuffled = true
+        }
+
+        val message = when {
+            hasMetTarget() -> "Sunburst fired. Target cleared."
+            shuffled -> "Sunburst fired across $removed tiles. Board shuffled for a fresh move."
+            else -> "Sunburst fired across $removed tiles."
+        }
+
+        return SwapResult(true, message)
+    }
+
+    fun useExtraMoves(amount: Int = EXTRA_MOVES_BONUS): SwapResult {
+        if (extraMoveCharges <= 0) {
+            return SwapResult(false, "No extra move boosts left on this level.")
+        }
+
+        extraMoveCharges--
+        movesRemaining += amount
+        return SwapResult(true, "Extra moves activated. +$amount moves.")
     }
 
     fun shuffleBoard() {
