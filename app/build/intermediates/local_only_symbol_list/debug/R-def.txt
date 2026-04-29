@@ -1,9 +1,15 @@
 R_DEF: Internal format may change without notice
 local
+color accent_primary
+color accent_secondary
+color bg_end
+color bg_start
 color board_slot
 color board_surface
+color panel_surface
 color text_primary
 color text_secondary
+color text_white
 color tile_blue
 color tile_empty
 color tile_green

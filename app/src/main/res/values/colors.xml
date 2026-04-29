@@ -1,13 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="board_surface">#2D6A4F</color>
-    <color name="board_slot">#245744</color>
-    <color name="tile_empty">#245744</color>
-    <color name="tile_red">#E76F51</color>
-    <color name="tile_blue">#4D96FF</color>
+    <!-- Background & Panels -->
+    <color name="bg_start">#0081A7</color>
+    <color name="bg_end">#00AFB9</color>
+    <color name="panel_surface">#CCFDFCDC</color>
+    <color name="board_surface">#800081A7</color>
+    <color name="board_slot">#40000000</color>
+
+    <!-- Tiles (Tropical Gem Theme) -->
+    <color name="tile_red">#F07167</color>
+    <color name="tile_blue">#0081A7</color>
     <color name="tile_green">#2A9D8F</color>
-    <color name="tile_yellow">#E9C46A</color>
-    <color name="tile_purple">#8D5FD3</color>
-    <color name="text_primary">#1F2933</color>
-    <color name="text_secondary">#52606D</color>
+    <color name="tile_yellow">#F9C74F</color>
+    <color name="tile_purple">#9B5DE5</color>
+    <color name="tile_empty">#00000000</color>
+
+    <!-- Text -->
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_primary">#003554</color>
+    <color name="text_secondary">#006494</color>
+
+    <!-- Accents -->
+    <color name="accent_primary">#F07167</color>
+    <color name="accent_secondary">#FED9B7</color>
 </resources>

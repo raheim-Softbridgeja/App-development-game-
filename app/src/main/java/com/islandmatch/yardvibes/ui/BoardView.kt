@@ -1,13 +1,11 @@
 package com.islandmatch.yardvibes.ui
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.islandmatch.yardvibes.R
 import com.islandmatch.yardvibes.game.GridPos
 import kotlin.math.min
@@ -22,21 +20,21 @@ class BoardView @JvmOverloads constructor(
     private var selectedTile: GridPos? = null
 
     private val boardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = context.getColor(R.color.board_surface)
+        color = ContextCompat.getColor(context, R.color.board_surface)
     }
 
     private val slotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = context.getColor(R.color.board_slot)
+        color = ContextCompat.getColor(context, R.color.board_slot)
     }
 
     private val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         style = Paint.Style.STROKE
-        strokeWidth = 8f
+        strokeWidth = 10f
     }
 
     private val shinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(48, 255, 255, 255)
+        style = Paint.Style.FILL
     }
 
     private var boardLeft = 0f
@@ -44,6 +42,7 @@ class BoardView @JvmOverloads constructor(
     private var cellSize = 0f
     private var rows = 0
     private var cols = 0
+    private val tilePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     fun render(board: Array<IntArray>, selectedTile: GridPos?) {
         this.board = board
@@ -69,7 +68,7 @@ class BoardView @JvmOverloads constructor(
         boardTop = paddingTop + (verticalSpace - boardHeight) / 2f
 
         val boardRect = RectF(boardLeft, boardTop, boardLeft + boardWidth, boardTop + boardHeight)
-        canvas.drawRoundRect(boardRect, 28f, 28f, boardPaint)
+        canvas.drawRoundRect(boardRect, 32f, 32f, boardPaint)
 
         for (row in 0 until rows) {
             for (col in 0 until cols) {
@@ -78,25 +77,7 @@ class BoardView @JvmOverloads constructor(
 
                 val tile = board[row][col]
                 if (tile != 0) {
-                    val inset = cellSize * 0.08f
-                    val gemRect = RectF(
-                        tileRect.left + inset,
-                        tileRect.top + inset,
-                        tileRect.right - inset,
-                        tileRect.bottom - inset,
-                    )
-                    val tilePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                        color = colorForTile(tile)
-                    }
-                    canvas.drawRoundRect(gemRect, 20f, 20f, tilePaint)
-
-                    val shineRect = RectF(
-                        gemRect.left + inset,
-                        gemRect.top + inset,
-                        gemRect.right - inset * 2f,
-                        gemRect.top + gemRect.height() * 0.28f,
-                    )
-                    canvas.drawRoundRect(shineRect, 16f, 16f, shinePaint)
+                    drawFancyTile(canvas, tile, tileRect)
                 }
 
                 if (selectedTile?.row == row && selectedTile?.col == col) {
@@ -111,6 +92,55 @@ class BoardView @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    private fun drawFancyTile(canvas: Canvas, tile: Int, rect: RectF) {
+        val inset = cellSize * 0.12f
+        val gemRect = RectF(
+            rect.left + inset,
+            rect.top + inset,
+            rect.right - inset,
+            rect.bottom - inset,
+        )
+
+        val baseColor = colorForTile(tile)
+        val lighterColor = lightenColor(baseColor)
+        val darkerColor = darkenColor(baseColor)
+
+        // Main Gradient Body
+        tilePaint.shader = LinearGradient(
+            gemRect.left, gemRect.top, gemRect.right, gemRect.bottom,
+            intArrayOf(lighterColor, baseColor, darkerColor),
+            null, Shader.TileMode.CLAMP
+        )
+        canvas.drawRoundRect(gemRect, 24f, 24f, tilePaint)
+        tilePaint.shader = null
+
+        // Top Shine
+        val shineInset = inset * 0.5f
+        val shineRect = RectF(
+            gemRect.left + shineInset,
+            gemRect.top + shineInset,
+            gemRect.right - shineInset,
+            gemRect.top + gemRect.height() * 0.4f,
+        )
+        shinePaint.color = Color.argb(100, 255, 255, 255)
+        canvas.drawRoundRect(shineRect, 18f, 18f, shinePaint)
+    }
+
+    private fun lightenColor(color: Int): Int {
+        val hsv = FloatArray(3)
+        Color.colorToHSV(color, hsv)
+        hsv[2] = (hsv[2] * 1.3f).coerceAtMost(1.0f)
+        hsv[1] = (hsv[1] * 0.7f).coerceAtLeast(0.0f)
+        return Color.HSVToColor(hsv)
+    }
+
+    private fun darkenColor(color: Int): Int {
+        val hsv = FloatArray(3)
+        Color.colorToHSV(color, hsv)
+        hsv[2] = (hsv[2] * 0.7f).coerceAtLeast(0.0f)
+        return Color.HSVToColor(hsv)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -152,12 +182,12 @@ class BoardView @JvmOverloads constructor(
 
     private fun colorForTile(tile: Int): Int {
         return when (tile) {
-            1 -> context.getColor(R.color.tile_red)
-            2 -> context.getColor(R.color.tile_blue)
-            3 -> context.getColor(R.color.tile_green)
-            4 -> context.getColor(R.color.tile_yellow)
-            5 -> context.getColor(R.color.tile_purple)
-            else -> context.getColor(R.color.tile_empty)
+            1 -> ContextCompat.getColor(context, R.color.tile_red)
+            2 -> ContextCompat.getColor(context, R.color.tile_blue)
+            3 -> ContextCompat.getColor(context, R.color.tile_green)
+            4 -> ContextCompat.getColor(context, R.color.tile_yellow)
+            5 -> ContextCompat.getColor(context, R.color.tile_purple)
+            else -> ContextCompat.getColor(context, R.color.tile_empty)
         }
     }
 }

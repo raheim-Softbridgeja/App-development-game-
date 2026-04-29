@@ -8,6 +8,7 @@ import com.islandmatch.yardvibes.game.GameEngine
 import com.islandmatch.yardvibes.game.GridPos
 import com.islandmatch.yardvibes.game.LevelRepository
 import com.islandmatch.yardvibes.ui.BoardView
+import com.islandmatch.yardvibes.ui.SoundManager
 
 class MainActivity : Activity() {
     private lateinit var boardView: BoardView
@@ -24,6 +25,7 @@ class MainActivity : Activity() {
     private lateinit var levelRepository: LevelRepository
     private lateinit var levelIds: List<String>
     private lateinit var engine: GameEngine
+    private lateinit var soundManager: SoundManager
 
     private var currentLevelIndex = 0
     private var selectedTile: GridPos? = null
@@ -33,6 +35,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
         bindViews()
 
+        soundManager = SoundManager(this)
         levelRepository = LevelRepository(assets)
         levelIds = levelRepository.listLevelIds()
 
@@ -43,12 +46,14 @@ class MainActivity : Activity() {
         }
 
         restartButton.setOnClickListener {
+            soundManager.playClick()
             if (levelIds.isNotEmpty()) {
                 loadLevel(currentLevelIndex, getString(R.string.level_restarted))
             }
         }
 
         shuffleButton.setOnClickListener {
+            soundManager.playClick()
             if (::engine.isInitialized) {
                 engine.shuffleBoard()
                 selectedTile = null
@@ -57,6 +62,7 @@ class MainActivity : Activity() {
         }
 
         nextButton.setOnClickListener {
+            soundManager.playClick()
             if (levelIds.isNotEmpty()) {
                 val nextIndex = (currentLevelIndex + 1) % levelIds.size
                 loadLevel(nextIndex, getString(R.string.level_loaded))
@@ -103,6 +109,7 @@ class MainActivity : Activity() {
 
     private fun handleTileTap(pos: GridPos) {
         if (engine.movesRemaining == 0 && !engine.hasMetTarget()) {
+            soundManager.playError()
             refreshUi(getString(R.string.no_moves_left))
             return
         }
@@ -114,22 +121,30 @@ class MainActivity : Activity() {
         val currentSelection = selectedTile
         when {
             currentSelection == null -> {
+                soundManager.playClick()
                 selectedTile = pos
                 refreshUi(getString(R.string.select_neighbor_prompt))
             }
 
             currentSelection == pos -> {
+                soundManager.playClick()
                 selectedTile = null
                 refreshUi(getString(R.string.selection_cleared))
             }
 
             !engine.areAdjacent(currentSelection, pos) -> {
+                soundManager.playClick()
                 selectedTile = pos
                 refreshUi(getString(R.string.select_neighbor_prompt))
             }
 
             else -> {
                 val result = engine.trySwap(currentSelection, pos)
+                if (result.success) {
+                    soundManager.playMatch()
+                } else {
+                    soundManager.playError()
+                }
                 selectedTile = null
                 refreshUi(result.message)
             }
@@ -159,5 +174,10 @@ class MainActivity : Activity() {
         targetText.text = targetLine
         statusText.text = statusMessage
         boardView.render(engine.copyBoard(), selectedTile)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        soundManager.release()
     }
 }
