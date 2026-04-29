@@ -28,6 +28,7 @@ drawable menu_scene_badge
 drawable panel_board
 drawable panel_menu
 drawable panel_stats
+drawable panel_task
 id boardView
 id extraMovesButton
 id gameRoot
@@ -45,10 +46,13 @@ id openMenuButton
 id restartButton
 id scoreText
 id shuffleButton
+id starText
 id statusText
 id sunburstButton
 id targetText
 id titleText
+id yardProgressText
+id yardTaskList
 layout activity_main
 mipmap ic_launcher
 mipmap ic_launcher_round
@@ -86,6 +90,13 @@ string score_value
 string select_neighbor_prompt
 string selection_cleared
 string shuffle
+string star_task_completed
+string star_task_cost
+string star_task_cost_plural
+string star_task_done
+string star_task_not_enough
+string star_task_purchased
+string stars_initial
 string stars_value
 string start_adventure
 string sunburst_armed
@@ -97,6 +108,8 @@ string target_cleared
 string target_live
 string target_value
 string tool_cleared
+string yard_progress_value
+string yard_tasks
 style Theme.Match3
 xml backup_rules
 xml data_extraction_rules

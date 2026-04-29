@@ -1,10 +1,15 @@
 package com.islandmatch.yardvibes
 
 import android.app.Activity
+import android.graphics.Typeface
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.islandmatch.yardvibes.game.*
 import com.islandmatch.yardvibes.ui.BoardView
 import com.islandmatch.yardvibes.ui.MusicManager
@@ -33,11 +38,11 @@ class MainActivity : Activity() {
     private lateinit var menuPlayButton: Button
     private lateinit var menuMusicButton: Button
     private lateinit var menuProgressText: TextView
+    private lateinit var yardProgressText: TextView
+    private lateinit var yardTaskList: LinearLayout
     private lateinit var restartButton: Button
     private lateinit var shuffleButton: Button
     private lateinit var nextButton: Button
-    
-    // Star Renovation UI
     private lateinit var starText: TextView
 
     private lateinit var levelRepository: LevelRepository
@@ -46,6 +51,7 @@ class MainActivity : Activity() {
     private lateinit var soundManager: SoundManager
     private lateinit var musicManager: MusicManager
     private lateinit var currencyManager: CurrencyManager
+    private lateinit var yardTaskManager: YardTaskManager
 
     private var currentLevelIndex = 0
     private var selectedTile: GridPos? = null
@@ -59,7 +65,8 @@ class MainActivity : Activity() {
 
         soundManager = SoundManager(this)
         musicManager = MusicManager(this)
-        currencyManager = CurrencyManager()
+        currencyManager = CurrencyManager(this)
+        yardTaskManager = YardTaskManager(this)
         levelRepository = LevelRepository(assets)
         levelIds = levelRepository.listLevelIds()
 
@@ -194,12 +201,12 @@ class MainActivity : Activity() {
         menuPlayButton = findViewById(R.id.menuPlayButton)
         menuMusicButton = findViewById(R.id.menuMusicButton)
         menuProgressText = findViewById(R.id.menuProgressText)
+        yardProgressText = findViewById(R.id.yardProgressText)
+        yardTaskList = findViewById(R.id.yardTaskList)
         restartButton = findViewById(R.id.restartButton)
         shuffleButton = findViewById(R.id.shuffleButton)
         nextButton = findViewById(R.id.nextButton)
-        
-        // This is a placeholder; you may need to add a star view to layout
-        starText = findViewById(R.id.scoreText) 
+        starText = findViewById(R.id.starText)
     }
 
     private fun disableControls() {
@@ -227,14 +234,6 @@ class MainActivity : Activity() {
             return
         }
 
-        // Logic for target completion, earning star
-        if (engine.hasMetTarget() && !engine.isLevelFinished) {
-            engine.markLevelFinished()
-            currencyManager.addStars(1)
-            refreshUi(getString(R.string.level_cleared))
-            return
-        }
-        
         if (engine.tileAt(pos) == 0) {
             return
         }
@@ -248,7 +247,7 @@ class MainActivity : Activity() {
             }
             activeTool = ToolMode.NONE
             selectedTile = null
-            refreshUi(result.message)
+            refreshUi(if (result.success) awardLevelStarIfNeeded(result.message) else result.message)
             return
         }
 
@@ -261,7 +260,7 @@ class MainActivity : Activity() {
             }
             activeTool = ToolMode.NONE
             selectedTile = null
-            refreshUi(result.message)
+            refreshUi(if (result.success) awardLevelStarIfNeeded(result.message) else result.message)
             return
         }
 
@@ -293,7 +292,7 @@ class MainActivity : Activity() {
                     soundManager.playError()
                 }
                 selectedTile = null
-                refreshUi(result.message)
+                refreshUi(if (result.success) awardLevelStarIfNeeded(result.message) else result.message)
             }
         }
     }
@@ -304,6 +303,7 @@ class MainActivity : Activity() {
         }
         
         starText.text = getString(R.string.stars_value, currencyManager.starBalance)
+        renderYardTasks()
         
         val targetLine = getString(
             R.string.target_value,
@@ -340,6 +340,111 @@ class MainActivity : Activity() {
         boardView.render(engine.copyBoard(), selectedTile)
     }
 
+    private fun awardLevelStarIfNeeded(statusMessage: String): String {
+        if (!engine.hasMetTarget() || engine.isLevelFinished) {
+            return statusMessage
+        }
+
+        engine.markLevelFinished()
+        currencyManager.addStars(1)
+        return getString(R.string.level_cleared)
+    }
+
+    private fun renderYardTasks() {
+        if (!::yardTaskList.isInitialized || !::yardProgressText.isInitialized) {
+            return
+        }
+
+        val tasks = yardTaskManager.tasks()
+        yardProgressText.text = getString(
+            R.string.yard_progress_value,
+            yardTaskManager.completedCount(),
+            yardTaskManager.totalCount(),
+        )
+        yardTaskList.removeAllViews()
+
+        tasks.forEach { task ->
+            val canBuy = !task.isCompleted && currencyManager.canAfford(task.cost)
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setBackgroundResource(R.drawable.panel_task)
+                setPadding(12.dp(), 8.dp(), 10.dp(), 8.dp())
+            }
+            val rowParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                bottomMargin = 8.dp()
+            }
+
+            val label = TextView(this).apply {
+                text = if (task.isCompleted) {
+                    getString(R.string.star_task_completed, task.description)
+                } else {
+                    task.description
+                }
+                textSize = 14f
+                maxLines = 2
+                typeface = if (task.isCompleted) Typeface.DEFAULT else Typeface.DEFAULT_BOLD
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_primary))
+            }
+            val labelParams = LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f,
+            ).apply {
+                marginEnd = 8.dp()
+            }
+
+            val actionButton = Button(this).apply {
+                text = if (task.isCompleted) getString(R.string.star_task_done) else taskCostLabel(task.cost)
+                isEnabled = canBuy
+                isAllCaps = false
+                minHeight = 0
+                minimumHeight = 0
+                setPadding(8.dp(), 0, 8.dp(), 0)
+                setTextColor(
+                    ContextCompat.getColor(
+                        this@MainActivity,
+                        if (canBuy) R.color.text_white else R.color.text_primary,
+                    ),
+                )
+                setBackgroundResource(if (canBuy) R.drawable.button_primary else R.drawable.button_secondary)
+                if (!task.isCompleted) {
+                    setOnClickListener { spendStarsOnTask(task) }
+                }
+            }
+
+            row.addView(label, labelParams)
+            row.addView(actionButton, LinearLayout.LayoutParams(108.dp(), 42.dp()))
+            yardTaskList.addView(row, rowParams)
+        }
+    }
+
+    private fun spendStarsOnTask(task: YardTask) {
+        if (task.isCompleted) {
+            return
+        }
+
+        if (!currencyManager.spendStars(task.cost)) {
+            soundManager.playError()
+            refreshUi(getString(R.string.star_task_not_enough))
+            return
+        }
+
+        val completedTask = yardTaskManager.complete(task.id)
+        soundManager.playMatch()
+        refreshUi(getString(R.string.star_task_purchased, completedTask?.description ?: task.description))
+    }
+
+    private fun taskCostLabel(cost: Int): String {
+        return getString(
+            if (cost == 1) R.string.star_task_cost else R.string.star_task_cost_plural,
+            cost,
+        )
+    }
+
     private fun setToolMode(mode: ToolMode, armedMessage: String) {
         activeTool = mode
         selectedTile = null
@@ -347,6 +452,7 @@ class MainActivity : Activity() {
     }
 
     private fun showMenuOverlay(animate: Boolean = true) {
+        renderYardTasks()
         updateMusicButtonLabel()
         menuPlayButton.text = if (hasEnteredBoard) getString(R.string.resume_adventure) else getString(R.string.start_adventure)
         menuOverlay.visibility = View.VISIBLE
@@ -396,4 +502,6 @@ class MainActivity : Activity() {
         soundManager.release()
         musicManager.release()
     }
+
+    private fun Int.dp(): Int = (this * resources.displayMetrics.density).toInt()
 }

@@ -35,6 +35,13 @@
     <string name="selection_cleared">Selection cleared.</string>
     <string name="shuffle">Shuffle</string>
     <string name="start_adventure">Start Adventure</string>
+    <string name="star_task_done">Done</string>
+    <string name="star_task_cost">%1$d Star</string>
+    <string name="star_task_cost_plural">%1$d Stars</string>
+    <string name="star_task_completed">%1$s complete.</string>
+    <string name="star_task_not_enough">Not enough stars for that yard task.</string>
+    <string name="star_task_purchased">Yard upgraded: %1$s</string>
+    <string name="stars_initial">Stars: 0</string>
     <string name="stars_value">Stars: %1$d</string>
     <string name="sunburst_armed">Sunburst ready. Tap any color to clear every matching tile.</string>
     <string name="sunburst_default">Sunburst</string>
@@ -45,4 +52,6 @@
     <string name="target_live">Goal live</string>
     <string name="target_value">Target: %1$d | %2$s</string>
     <string name="tool_cleared">Tool cleared.</string>
+    <string name="yard_progress_value">Yard tasks: %1$d/%2$d complete</string>
+    <string name="yard_tasks">Yard Tasks</string>
 </resources>
